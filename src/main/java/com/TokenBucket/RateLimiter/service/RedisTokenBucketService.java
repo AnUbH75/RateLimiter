@@ -15,16 +15,15 @@ public class RedisTokenBucketService {
     private static final String LAST_REFILL_KEY_PREFIX = "rate_limiter:last_refill:";
 
     public boolean isAllowed(String clientId) {
-        String tokenkey = TOKENS_KEY_PREFIX + clientId;
-        try(Jedis jedis = jedisPool.getResource()) {
+        String tokenKey = TOKENS_KEY_PREFIX + clientId;
+        try (Jedis jedis = jedisPool.getResource()) {
             refillTokens(clientId, jedis);
-            String tokenStr = jedis.get(tokenkey);
-            long currentTokens = tokenStr != null ? Long.parseLong(tokenStr) : rateLimiterProperties.getCapacity();
-            if(currentTokens <= 0){
+            long remaining = jedis.decr(tokenKey);
+            if (remaining < 0) {
+                jedis.incr(tokenKey);
                 return false;
             }
-            long decremented = jedis.decr(tokenkey);
-            return decremented >= 0;
+            return true;
         }
     }
 
