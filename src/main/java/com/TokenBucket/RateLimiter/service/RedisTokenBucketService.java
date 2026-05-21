@@ -20,7 +20,7 @@ public class RedisTokenBucketService {
             refillTokens(clientId, jedis);
             String tokenStr = jedis.get(tokenkey);
             long currentTokens = tokenStr != null ? Long.parseLong(tokenStr) : rateLimiterProperties.getCapacity();
-            if(currentTokens > 0){
+            if(currentTokens <= 0){
                 return false;
             }
             long decremented = jedis.decr(tokenkey);
@@ -62,8 +62,12 @@ public class RedisTokenBucketService {
 
         String tokenStr = jedis.get(tokenkey);
         long currentTokens = tokenStr != null ? Long.parseLong(tokenStr) : rateLimiterProperties.getCapacity();
-        long newTokens = Math.max(rateLimiterProperties.getCapacity(), currentTokens + tokensToAdd);
+        long newTokens = Math.min(rateLimiterProperties.getCapacity(), currentTokens + tokensToAdd);
         jedis.set(tokenkey, String.valueOf(newTokens));
-        jedis.set(lastRefillKey, String.valueOf(now));
+        long updatedRefillTime =
+                lastRefillTime +
+                        (tokensToAdd * 1000 / rateLimiterProperties.getRefillRate());
+
+        jedis.set(lastRefillKey, String.valueOf(updatedRefillTime));
     }
 }

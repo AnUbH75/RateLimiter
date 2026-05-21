@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 public class RateLimiterProperties {
 
     private long capacity = 10;
-    private long refillRate = 5;
+    private long refillRate = 1;
     private String apiServerUrl = "http://localhost:8080";
     private int timeout = 5000;
-
 }
