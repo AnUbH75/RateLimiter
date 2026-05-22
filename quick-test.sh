@@ -2,7 +2,7 @@
 echo "=== Rate Limiter Quick Test ==="
 
 # First, flush Redis to reset state
-# redis-cli FLUSHALL
+redis-cli FLUSHALL
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
